@@ -1,0 +1,51 @@
+
+% This LaTeX was auto-generated from MATLAB code.
+% To make changes, update the MATLAB code and republish this document.
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{color}
+
+\sloppy
+\definecolor{lightgray}{gray}{0.5}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+    
+    
+\section*{}
+
+\begin{par}
+
+Decision Making - ELETRE \\
+Type P.$\alpha$ Problem.
+
+\end{par} \vspace{1em}
+\begin{par}
+Problem data table
+\end{par} \vspace{1em}
+\begin{verbatim}
+ProblemTable = 'ProblemTable.dat';
+delimiterIn = ' ';
+headerlinesIn = 1;
+A = importdata(ProblemTable,delimiterIn,headerlinesIn);
+
+save('ProblemTable.mat','A')
+load ProblemTable
+\end{verbatim}
+\begin{par}
+Assessment dataset
+\end{par} \vspace{1em}
+\begin{verbatim}
+EvalTable = 'EvalTable.dat';
+delimiterIn = ' ';
+headerlinesIn = 1;
+G = importdata(EvalTable,delimiterIn,headerlinesIn);
+save('EvalTable.mat','A')
+\end{verbatim}
+
+
+
+\end{document}
+    
