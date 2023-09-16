@@ -8,25 +8,38 @@
 %%
 % Problem dataset.
 ProblemTable = 'ProblemTable.dat';
-delimiterIn = ' ';
-headerlinesIn = 1;
-A = importdata(ProblemTable,delimiterIn,headerlinesIn);
-
+A = readtable(ProblemTable);
 save('ProblemTable.mat','A')
 load ProblemTable
 %%
 % Assessment dataset.
 EvalTable = 'EvalTable.dat';
-delimiterIn = ' ';
-headerlinesIn = 1;
-G = importdata(EvalTable,delimiterIn,headerlinesIn);
+G = readtable(EvalTable);
 save('EvalTable.mat','G') 
 load EvalTable
+
 %%
 % Thresholds values.
 Thresholds = 'thresholds.dat';
-delimiterIn = ' ';
-headerlinesIn = 1;
-T = importdata(Thresholds,delimiterIn,headerlinesIn);
+T = readtable(Thresholds);
 
+%%
+% Normalization of weights
+
+table
 %% 
+% Concordance matrix
+
+% normalize weight values
+fileID = fopen('EvalTable.dat');
+C = textscan(fileID,'%s %f %s %f');
+fclose(fileID);
+wsum=0;
+
+for id = 1: size(G,1)
+    wsum= wsum + G.Wheight(id);
+end
+disp(  wsum);
+disp(G)
+
+
