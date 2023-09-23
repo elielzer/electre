@@ -18,33 +18,168 @@
 
 \begin{par}
 
-Decision Making - ELETRE \\
+Decision Making - ELECTRE \\
 Type P.$\alpha$ Problem.
 
 \end{par} \vspace{1em}
 \begin{par}
-Problem data table
+Problem dataset.
 \end{par} \vspace{1em}
 \begin{verbatim}
 ProblemTable = 'ProblemTable.dat';
-delimiterIn = ' ';
-headerlinesIn = 1;
-A = importdata(ProblemTable,delimiterIn,headerlinesIn);
-
-save('ProblemTable.mat','A')
+AG = readtable(ProblemTable);
+sizeAG = size(AG) ;
+disp(sizeAG(2))
+save('ProblemTable.mat','AG')
 load ProblemTable
 \end{verbatim}
-\begin{par}
-Assessment dataset
+
+        \color{lightgray} \begin{verbatim}     4
+
+\end{verbatim} \color{black}
+    \begin{par}
+Assessment dataset.
 \end{par} \vspace{1em}
 \begin{verbatim}
 EvalTable = 'EvalTable.dat';
-delimiterIn = ' ';
-headerlinesIn = 1;
-G = importdata(EvalTable,delimiterIn,headerlinesIn);
-save('EvalTable.mat','A')
+W = readtable(EvalTable);
+save('EvalTable.mat','W')
+load EvalTable
+\end{verbatim}
+\begin{par}
+Thresholds values.
+\end{par} \vspace{1em}
+\begin{verbatim}
+Thresholds = 'thresholds.dat';
+T = readtable(Thresholds);
+\end{verbatim}
+\begin{par}
+Normalization of weights
+\end{par} \vspace{1em}
+\begin{verbatim}
+wsum=0;
+
+for id = 1: size(W,1)
+    wsum= wsum + W.Weight(id);
+end
+disp(wsum);
+disp(W)
+WW=W;
+% Redo weights matrix with normalized weight values.
+WW.Weight=(1/wsum)*W.Weight;
+sizeWW = size(WW);
+disp(WW)
 \end{verbatim}
 
+        \color{lightgray} \begin{verbatim}     9
+
+     Criteria      Weight    PreferenceRelation    q
+    ___________    ______    __________________    _
+
+    'Criteria1'    4         'lesser-better'       0
+    'Criteria2'    2         'lesser-better'       0
+    'Criteria3'    3         'greater-better'      0
+
+     Criteria      Weight     PreferenceRelation    q
+    ___________    _______    __________________    _
+
+    'Criteria1'    0.44444    'lesser-better'       0
+    'Criteria2'    0.22222    'lesser-better'       0
+    'Criteria3'    0.33333    'greater-better'      0
+
+\end{verbatim} \color{black}
+    \begin{par}
+Concordance matrix C.
+\end{par} \vspace{1em}
+\begin{verbatim}
+sizeC= sizeAG(1)^2;
+C = cell(100);
+C{100,100}=[]; % Memory allocation.
+for i=1, sizeC;
+    for j=1,sizeC;
+        C{i,j}(1)=0;
+        C{i,j}(2)=0;
+        C{i,j}(3)=0;
+        C{i,j}(4)=0;
+    end
+end
+
+% Weight assessment.
+% C{i,j}(1): K_p = 0, sum of the weights of the criteria where g(a)>g(b)+q;
+%{
+C{i,j}(2): K_e = 0,
+sum of the weights of the criteria where -q<= g(a)- g(b)<= q;
+%}
+% C{i,j}(3): K_m = 0, sum of the weights of the criteria where g(a)<g(b)+q.
+% C{i,j}(4): C(a,b), where "a" correpond to prefered alternative.
+
+%
+q=0; % Limit of indifference.
+%
+for i=1, sizeAG(1) % counter control for prefered alternative.
+    for j=1,sizeAG(1) % counter control for alternative under test.
+        for k=2, sizeAG(2) % selected column criteria.
+            if i~=j
+                if AG(i,k)>AG(j,k)+q
+                    for m=1, sizeWW(1)
+                        if WW(m)== ...
+                        AG.Properties.VariableNames(k);
+                            C{i,j}(1)=C{i,j}(1)+ WW(m,2); % concordance K element
+                        end
+                        %
+                    end
+                    % Calcular K
+                end
+                if -q <= AG(i,k)-AG(j,k)<=q
+                    for m=1, sizeWW(1)
+                        if WW(m)== ...
+                        AG.Properties.VariableNames(k);
+                            C{i,j}(2)=C{i,j}(2)+ WW(m,2);  % concordance K element
+                        end
+                        %
+                    end
+                    % Calcular K
+                end
+                if AG(i,k)<AG(j,k)+q
+                   for m=1, sizeWW(1)
+                        if WW(m)== ...
+                        AG.Properties.VariableNames(k);
+                            C{i,j}(3)= C{i,j}(3) + WW(m,2);  % concordance K element
+                        end
+                        %
+                    end
+                    % Calcular K
+                end
+            end  %i~=j
+        end
+    end
+end
+
+AG.Properties.VariableNames(2)
+\end{verbatim}
+
+        \color{lightgray} \begin{verbatim}
+ans =
+
+     4
+
+
+ans =
+
+     4
+
+
+ans =
+
+     4
+
+
+ans = 
+
+    'Criteria1'
+
+\end{verbatim} \color{black}
+    
 
 
 \end{document}
