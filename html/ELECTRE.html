@@ -1,0 +1,531 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Decision Making - ELECTRE</title><meta name="generator" content="MATLAB 9.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2023-10-03"><meta name="DC.source" content="ELECTRE.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Decision Making - ELECTRE</h1><!--introduction--><p>Type P.alpha Problem.</p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Data reading step</a></li><li><a href="#8">Execution of weight normalization.</a></li><li><a href="#10">Concordance matrix C.</a></li><li><a href="#14">Normalization of data from the alternative-criteria table.</a></li><li><a href="#16">Discordance matrix D.</a></li></ul></div><h2>Data reading step<a name="1"></a></h2><pre class="codeinput">alternative_criteria = <span class="string">'CriteriaAlternative.dat'</span> ;
+AltCrt = readtable(alternative_criteria) ;
+sizeA = size(AltCrt) ;
+</pre><p><tt>AltCrt</tt>: Problem dataset or alternative-criteria table.</p><p>If ordinal dada appears, then a scale will be associated, acording to the decision maker's preference.</p><div><ul><li>'A': high, higher, big, good, gold, emergency;</li><li>'B': intermediate, average, satisfactory, silver, urgency;</li><li>'C': low, small, unsatisfactory, bronze, planned.</li><li>AC: A&gt;C; BC: B&gt;C, AB: A&gt;B,</li><li>(A-C)/A = (10-7)/10= 0.3,</li><li>(B-C)/A =(7-4)/10 = 0.3,</li><li>(A-B)/A =(10-7)/10 = 0.3</li></ul></div><pre class="codeinput">Criteria = <span class="string">'Criteria.dat'</span> ;
+W = readtable(Criteria) ;
+</pre><p><tt>W</tt>: Assessment dataset.</p><pre class="codeinput">Thresholds = <span class="string">'thresholds.dat'</span> ;
+T = readtable(Thresholds) ;
+</pre><p><tt>T</tt>: Thresholds values.</p><pre class="codeinput">q = 0 ;
+</pre><p><tt>q</tt>: It is the limit of indifference.</p><pre class="codeinput">F = 1 ;
+<span class="comment">% F=2;</span>
+</pre><p><tt>F</tt>: The "factor" parameter to calc to Concordance matrix elements.</p><h2>Execution of weight normalization.<a name="8"></a></h2><pre class="codeinput">wsum=0;
+
+<span class="keyword">for</span> id = 1: size(W,1)
+    wsum= wsum + W.Weight(id) ;
+<span class="keyword">end</span>
+
+<span class="comment">% Redo weights matrix with normalized weight values.</span>
+WW=W;
+WW.Weight=(1/wsum)*W.Weight ;
+sizeW = size(W) ;
+disp(WW)
+</pre><pre class="codeoutput">     Criteria      Weight     PreferenceRelation    q
+    ___________    _______    __________________    _
+
+    'Criteria1'    0.44444    'lesser-better'       0
+    'Criteria2'    0.22222    'lesser-better'       0
+    'Criteria3'    0.33333    'greater-better'      0
+
+</pre><p><tt>WW</tt>: Copy of <tt>W</tt> table, but with already normalized weights.</p><h2>Concordance matrix C.<a name="10"></a></h2><p>Memory allocation</p><pre class="codeinput">sizeC= sizeA(1) ;
+C = cell(sizeC,sizeC,4) ;
+
+<span class="keyword">for</span> i=1: sizeC;
+    <span class="keyword">for</span> j=1: sizeC;
+        C{i,j,1}= 0 ;
+        C{i,j,2}= 0 ;
+        C{i,j,3}= 0 ;
+        C{i,j,4}= 0 ;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><p><tt>C{i,j,1}</tt> correponds to K_p, that is, sum of the weights of the criteria where g(a)&gt;g(b)+q.</p><p><tt>C{i,j,2}</tt> correponds to K_e, that is, sum of the weights of the criteria where g(a)&lt;g(b)+q.</p><p><tt>C{i,j,3}</tt> correponds to K_m, that is, sum of the weights of the riteria where g(a)&lt;g(b)+q.</p><p><tt>C{i,j,4}</tt> effectively correponds to the agreement index in favor of an alternative <tt>i</tt> instead of an alterntive <tt>j</tt>.</p><p>Weight assessment.</p><pre class="codeinput"><span class="keyword">for</span> i=1: sizeA(1) <span class="comment">% "i": counter of control for selected column at the</span>
+<span class="comment">% alternative-criteria table (problem's dataset).</span>
+
+    <span class="keyword">for</span> j=1:sizeA(1) <span class="comment">% "j": counter of control for alternative under test.</span>
+        <span class="keyword">for</span> k=2: sizeA(2) <span class="comment">% selected column of criteria at</span>
+        <span class="comment">% alternative-criteria table.</span>
+            <span class="keyword">if</span> i~=j
+                <span class="keyword">if</span> iscell(AltCrt{i,k}(1)) <span class="comment">% checks the cardinality of the</span>
+                <span class="comment">% alternative evaluation columns.</span>
+
+                    <span class="keyword">switch</span> AltCrt{i,k}(1)
+                        <span class="keyword">case</span> {<span class="string">'high'</span>, <span class="string">'higher'</span>, <span class="string">'big'</span>,<span class="keyword">...</span>
+                                <span class="string">'good'</span>, <span class="string">'gold'</span>, <span class="string">'emergency'</span>}
+                            key1= <span class="string">'A'</span> ;
+                        <span class="keyword">case</span> {<span class="string">'intermediate'</span>, <span class="string">'average'</span>, <span class="string">'satisfactory'</span>,
+                                <span class="string">'silver'</span>, <span class="string">'urgency'</span>}
+                            key1=<span class="string">'B'</span> ;
+                        <span class="keyword">case</span> {<span class="string">'low'</span>, <span class="string">'small'</span>, <span class="string">'unsatisfactory'</span>, <span class="string">'bronze'</span>,
+                                <span class="string">'planned'</span>}
+                            key1=<span class="string">'C'</span> ;
+                    <span class="keyword">end</span>
+                    <span class="keyword">switch</span> AltCrt{j,k}(1)
+                        <span class="keyword">case</span> {<span class="string">'high'</span>, <span class="string">'higher'</span>, <span class="string">'big'</span>,<span class="keyword">...</span>
+                                <span class="string">'good'</span>, <span class="string">'gold'</span>, <span class="string">'emergency'</span>}
+                            key2= <span class="string">'A'</span> ;
+                        <span class="keyword">case</span> {<span class="string">'intermediate'</span>, <span class="string">'average'</span>, <span class="string">'satisfactory'</span>,
+                                <span class="string">'silver'</span>, <span class="string">'urgency'</span>}
+                            key2=<span class="string">'B'</span> ;
+                        <span class="keyword">case</span> {<span class="string">'low'</span>, <span class="string">'small'</span>, <span class="string">'unsatisfactory'</span>, <span class="string">'bronze'</span>,
+                                <span class="string">'planned'</span>}
+                            key2=<span class="string">'C'</span> ;
+                    <span class="keyword">end</span>
+                    <span class="keyword">switch</span> strcat(key1,key2)
+                        <span class="keyword">case</span> {<span class="string">'AC'</span>,<span class="string">'BC'</span>, <span class="string">'AB'</span> }
+                            <span class="keyword">for</span> m=1: sizeW(1)
+                                <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                                AltCrt.Properties.VariableNames{k} ;
+                                    <span class="comment">% Concordance table's K element.</span>
+                                    C{i,j,1}=C{i,j,1}+ WW{m,2}(1) ;
+                                <span class="keyword">end</span>
+                            <span class="keyword">end</span>
+                            <span class="comment">%</span>
+                        <span class="keyword">case</span> {<span class="string">'AA'</span>,<span class="string">'BB'</span>, <span class="string">'CC'</span>}
+                            <span class="keyword">for</span> m=1: sizeW(1)
+                                <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                                AltCrt.Properties.VariableNames{k} ;
+                                    <span class="comment">% Concordance table's K element.</span>
+                                    C{i,j,2}=double(C{i,j,2})+ WW{m,2}(1) ;
+                                <span class="keyword">end</span>
+                                <span class="comment">%</span>
+                            <span class="keyword">end</span>
+                            <span class="comment">%</span>
+                        <span class="keyword">case</span> {<span class="string">'CA'</span>, <span class="string">'CB'</span>, <span class="string">'BA'</span> }
+                        <span class="keyword">for</span> m=1: sizeW(1)
+                            <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                                    AltCrt.Properties.VariableNames{k}
+                                <span class="comment">% Concordance table's K element.</span>
+                                C{i,j,3}= double(C{i,j,3})+ WW{m,2}(1) ;
+                            <span class="keyword">end</span>
+                            <span class="comment">%</span>
+                       <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">else</span> <span class="comment">% Statement not is cell.</span>
+                    <span class="keyword">if</span> AltCrt{i,k}(1)&gt;AltCrt{j,k}(1)+q
+                        <span class="keyword">for</span> m=1: sizeW(1)
+                            <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                            AltCrt.Properties.VariableNames{k} ;
+                                <span class="comment">% Concordance table's K element.</span>
+                                C{i,j,1}=double(C{i,j,1})+ WW{m,2}(1) ;
+
+                            <span class="keyword">end</span>
+                            <span class="comment">%</span>
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> -q &lt;= AltCrt{i,k}(1)- AltCrt{j,k}(1)&lt;=q
+                        <span class="keyword">for</span> m=1: sizeW(1)
+                            <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                            AltCrt.Properties.VariableNames{k} ;
+                                <span class="comment">% Concordance table's K element</span>
+                                C{i,j,2}=double(C{i,j,2})+ WW{m,2}(1) ;
+                            <span class="keyword">end</span>
+                            <span class="comment">%</span>
+                        <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                    <span class="keyword">if</span> AltCrt{i,k}(1)&lt;AltCrt{j,k}(1)+q
+                       <span class="keyword">for</span> m=1: sizeW(1)
+                            <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                                    AltCrt.Properties.VariableNames{k}
+                                <span class="comment">% Concordance table's K element</span>
+                                C{i,j,3}= double(C{i,j,3})+ WW{m,2}(1) ;
+                            <span class="keyword">end</span>
+                       <span class="keyword">end</span>
+                    <span class="keyword">end</span>
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><p>Calculate and store the respective concordance index in matrix C</p><pre class="codeinput"><span class="keyword">for</span> i=1: size(C)
+    <span class="keyword">for</span> j=1:size(C)
+        <span class="keyword">if</span> i~=j
+        C{i,j,4} = <span class="keyword">...</span>
+            ( double(C{i,j,1}) + double(C{i,j,2})*F )/<span class="keyword">...</span>
+            (  double(C{i,j,1}) + double(C{i,j,2}) + double(C{i,j,3}) ) ;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><h2>Normalization of data from the alternative-criteria table.<a name="14"></a></h2><p>Define a secondary table.</p><pre class="codeinput">AltCrtNmz = AltCrt ;
+</pre><pre class="codeinput"><span class="keyword">for</span> i=1: sizeA(1)
+    <span class="keyword">for</span> j=2: sizeA(2) <span class="comment">% Selected column of criteria at</span>
+        <span class="comment">% alternative-criteria table.</span>
+        <span class="keyword">for</span> m=1: sizeW(1)
+            <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+            AltCrt.Properties.VariableNames{k} ;
+                AltCrtNmz{i,j}= AltCrtNmz{i,j}/  WW{m,7}(1) ;
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using ELECTRE (line 210)
+Variable index exceeds table dimensions.
+</pre><h2>Discordance matrix D.<a name="16"></a></h2><p>Memory allocation</p><pre class="codeinput">D = cell(sizeC,sizeC,4) ;
+<span class="keyword">for</span> i=1: sizeC ;
+    <span class="keyword">for</span> j=1: sizeC;
+        D{i,j,1}= 0 ;
+        D{i,j,2}= 0 ;
+        D{i,j,3}= 0 ;
+        D{i,j,4}= 0 ;
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><p>Resize the <tt>WW</tt> matrix to meet the evaluation value normalization process.</p><pre class="codeinput">WW.A_Max = double(zeros([size(WW,1) 1]) ) ;
+</pre><p><tt>WW.A_Max</tt>: colunm to receive the maximum value found by criteria column in the alternative_criteria table.</p><pre class="codeinput">WW.A_Min = double(zeros([size(WW,1) 1]) ) ;
+</pre><p><tt>WW.A_Min</tt>: column to receive the minimum value found by criteria column in the alternative-criteria table.</p><pre class="codeinput">WW.delta = double(zeros([size(WW,1) 1]) ) ;
+</pre><p><tt>WW.delta</tt>: column to receive the delta given by the difference between the maximum and minimum column of the <tt>WW</tt> intermediate table.</p><pre class="codeinput">    <span class="keyword">for</span> k=1:sizeA(2) <span class="comment">% "k": Counter of control for selected column at the</span>
+        <span class="comment">% alternative-criteria table.</span>
+        <span class="keyword">if</span> iscell(AltCrt{1,k}(1)) <span class="comment">% Checks the cardinality of the</span>
+        <span class="comment">% alternative evaluation columns.</span>
+
+        <span class="keyword">else</span>
+           <span class="keyword">for</span> m=1: sizeW(1)
+                <span class="keyword">if</span> char(WW{m,1})== <span class="keyword">...</span>
+                        AltCrt.Properties.VariableNames{k}
+                    WW{m,5}= double(max(AltCrt{:,k},[],1)) ;
+                    WW{m,6}= double(min(AltCrt{:,k},[],1)) ;
+                    WW{m,7}= double(WW{m,5} - WW{m,6}) ;
+                <span class="keyword">end</span>
+           <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Decision Making - ELECTRE 
+% Type P.alpha Problem.
+% 
+%% Data reading step
+
+alternative_criteria = 'CriteriaAlternative.dat' ;
+AltCrt = readtable(alternative_criteria) ;
+sizeA = size(AltCrt) ;
+
+%%
+% |AltCrt|: Problem dataset or alternative-criteria table.
+%
+% If ordinal dada appears, then a scale will be associated, acording to the
+% decision maker's preference.
+%
+% * 'A': high, higher, big, good, gold, emergency;
+% * 'B': intermediate, average, satisfactory, silver, urgency;
+% * 'C': low, small, unsatisfactory, bronze, planned.
+% * AC: A>C; BC: B>C, AB: A>B, 
+% * (A-C)/A = (10-7)/10= 0.3,
+% * (B-C)/A =(7-4)/10 = 0.3,
+% * (A-B)/A =(10-7)/10 = 0.3
+
+Criteria = 'Criteria.dat' ;
+W = readtable(Criteria) ;
+%%
+% |W|: Assessment dataset.
+
+Thresholds = 'thresholds.dat' ;
+T = readtable(Thresholds) ;
+%%
+% |T|: Thresholds values.
+
+q = 0 ;
+%%
+% |q|: It is the limit of indifference.
+%%
+F = 1 ;
+% F=2;
+%%
+% |F|: The "factor" parameter to calc to Concordance matrix elements.
+%% Execution of weight normalization.
+wsum=0;
+
+for id = 1: size(W,1)
+    wsum= wsum + W.Weight(id) ;
+end
+
+% Redo weights matrix with normalized weight values.
+WW=W;
+WW.Weight=(1/wsum)*W.Weight ;
+sizeW = size(W) ;
+disp(WW)
+%%
+% |WW|: Copy of |W| table, but with already normalized weights.
+
+
+%% Concordance matrix C.
+% Memory allocation
+
+sizeC= sizeA(1) ;
+C = cell(sizeC,sizeC,4) ;
+
+for i=1: sizeC;
+    for j=1: sizeC;
+        C{i,j,1}= 0 ;
+        C{i,j,2}= 0 ;
+        C{i,j,3}= 0 ;
+        C{i,j,4}= 0 ;
+    end
+end
+
+%%
+% |C{i,j,1}| correponds to K_p, that is, sum of the weights of the
+% criteria where g(a)>g(b)+q.
+%
+% |C{i,j,2}| correponds to K_e, that is, sum of the weights of the
+% criteria where g(a)<g(b)+q.
+%
+% |C{i,j,3}| correponds to K_m, that is, sum of the weights of the
+% riteria where g(a)<g(b)+q.
+%
+% |C{i,j,4}| effectively correponds to the agreement index in favor of an
+% alternative |i| instead of an alterntive |j|.
+%
+%%
+% Weight assessment.
+
+for i=1: sizeA(1) % "i": counter of control for selected column at the
+% alternative-criteria table (problem's dataset).
+
+    for j=1:sizeA(1) % "j": counter of control for alternative under test.
+        for k=2: sizeA(2) % selected column of criteria at 
+        % alternative-criteria table.
+            if i~=j
+                if iscell(AltCrt{i,k}(1)) % checks the cardinality of the
+                % alternative evaluation columns.
+
+                    switch AltCrt{i,k}(1)
+                        case {'high', 'higher', 'big',...
+                                'good', 'gold', 'emergency'}
+                            key1= 'A' ;
+                        case {'intermediate', 'average', 'satisfactory',
+                                'silver', 'urgency'}
+                            key1='B' ;
+                        case {'low', 'small', 'unsatisfactory', 'bronze',
+                                'planned'}
+                            key1='C' ;
+                    end 
+                    switch AltCrt{j,k}(1)
+                        case {'high', 'higher', 'big',...
+                                'good', 'gold', 'emergency'}
+                            key2= 'A' ;
+                        case {'intermediate', 'average', 'satisfactory',
+                                'silver', 'urgency'}
+                            key2='B' ;
+                        case {'low', 'small', 'unsatisfactory', 'bronze',
+                                'planned'}
+                            key2='C' ;
+                    end
+                    switch strcat(key1,key2)
+                        case {'AC','BC', 'AB' }
+                            for m=1: sizeW(1)
+                                if char(WW{m,1})== ...
+                                AltCrt.Properties.VariableNames{k} ;
+                                    % Concordance table's K element.
+                                    C{i,j,1}=C{i,j,1}+ WW{m,2}(1) ; 
+                                end
+                            end
+                            %
+                        case {'AA','BB', 'CC'}
+                            for m=1: sizeW(1)
+                                if char(WW{m,1})== ...
+                                AltCrt.Properties.VariableNames{k} ;
+                                    % Concordance table's K element.
+                                    C{i,j,2}=double(C{i,j,2})+ WW{m,2}(1) ;  
+                                end
+                                %
+                            end                            
+                            %
+                        case {'CA', 'CB', 'BA' }
+                        for m=1: sizeW(1)
+                            if char(WW{m,1})== ...
+                                    AltCrt.Properties.VariableNames{k}
+                                % Concordance table's K element.
+                                C{i,j,3}= double(C{i,j,3})+ WW{m,2}(1) ;
+                            end 
+                            %
+                       end                           
+                    end
+                else % Statement not is cell. 
+                    if AltCrt{i,k}(1)>AltCrt{j,k}(1)+q
+                        for m=1: sizeW(1)
+                            if char(WW{m,1})== ...
+                            AltCrt.Properties.VariableNames{k} ;
+                                % Concordance table's K element.
+                                C{i,j,1}=double(C{i,j,1})+ WW{m,2}(1) ; 
+
+                            end
+                            %
+                        end
+                    end
+                    if -q <= AltCrt{i,k}(1)- AltCrt{j,k}(1)<=q
+                        for m=1: sizeW(1)
+                            if char(WW{m,1})== ...
+                            AltCrt.Properties.VariableNames{k} ;
+                                % Concordance table's K element
+                                C{i,j,2}=double(C{i,j,2})+ WW{m,2}(1) ;  
+                            end
+                            %
+                        end
+                    end
+                    if AltCrt{i,k}(1)<AltCrt{j,k}(1)+q
+                       for m=1: sizeW(1)
+                            if char(WW{m,1})== ...
+                                    AltCrt.Properties.VariableNames{k}
+                                % Concordance table's K element
+                                C{i,j,3}= double(C{i,j,3})+ WW{m,2}(1) ;
+                            end
+                       end
+                    end
+                end
+            end
+        end
+    end
+end
+%%
+% Calculate and store the respective concordance index in matrix C
+for i=1: size(C)
+    for j=1:size(C)
+        if i~=j 
+        C{i,j,4} = ...
+            ( double(C{i,j,1}) + double(C{i,j,2})*F )/...
+            (  double(C{i,j,1}) + double(C{i,j,2}) + double(C{i,j,3}) ) ;
+        end
+    end
+end
+
+%% Normalization of data from the alternative-criteria table.
+% Define a secondary table.    
+
+AltCrtNmz = AltCrt ;
+%%
+for i=1: sizeA(1)
+    for j=2: sizeA(2) % Selected column of criteria at
+        % alternative-criteria table.
+        for m=1: sizeW(1)
+            if char(WW{m,1})== ...
+            AltCrt.Properties.VariableNames{k} ; 
+                AltCrtNmz{i,j}= AltCrtNmz{i,j}/  WW{m,7}(1) ; 
+            end
+        end            
+            
+    end
+end
+%% Discordance matrix D.
+% Memory allocation
+
+D = cell(sizeC,sizeC,4) ;
+for i=1: sizeC ;
+    for j=1: sizeC;
+        D{i,j,1}= 0 ;
+        D{i,j,2}= 0 ;
+        D{i,j,3}= 0 ;
+        D{i,j,4}= 0 ;
+    end
+end
+
+%%
+% Resize the |WW| matrix to meet the evaluation value normalization
+% process.
+
+WW.A_Max = double(zeros([size(WW,1) 1]) ) ;
+%%
+% |WW.A_Max|: colunm to receive the maximum value found by criteria column 
+% in the alternative_criteria table.
+
+WW.A_Min = double(zeros([size(WW,1) 1]) ) ;
+%%
+% |WW.A_Min|: column to receive the minimum value found by criteria column
+% in the alternative-criteria table.
+
+WW.delta = double(zeros([size(WW,1) 1]) ) ;
+%% 
+% |WW.delta|: column to receive the delta given by the difference between
+% the maximum and minimum column of the |WW| intermediate table.
+
+    for k=1:sizeA(2) % "k": Counter of control for selected column at the 
+        % alternative-criteria table. 
+        if iscell(AltCrt{1,k}(1)) % Checks the cardinality of the 
+        % alternative evaluation columns.
+        
+        else
+           for m=1: sizeW(1)
+                if char(WW{m,1})== ...
+                        AltCrt.Properties.VariableNames{k}
+                    WW{m,5}= double(max(AltCrt{:,k},[],1)) ;
+                    WW{m,6}= double(min(AltCrt{:,k},[],1)) ;
+                    WW{m,7}= double(WW{m,5} - WW{m,6}) ;
+                end 
+           end             
+        end
+    end
+
+
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
