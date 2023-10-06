@@ -1,0 +1,2 @@
+# electre
+Decision Making Methodology
